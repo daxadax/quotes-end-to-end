@@ -3,8 +3,6 @@ require 'spec_helper'
 class FeaturesUser < FeatureTest
 
   it "registers new users" do
-    assert_kind_of :NotFound, get_user(nil)
-
     user = authenticate_test_user
 
     assert_equal '1',             user.uid
@@ -49,7 +47,7 @@ class FeaturesUser < FeatureTest
   def authenticate_test_user(options = {})
     call_use_case(:Users, :AuthenticateUser,
       :nickname => options[:nickname] || 'test_user',
-      :password => options[:password] || 'encrypted_password'
+      :auth_key => options[:auth_key] || 'auth_key'
     )
   end
 
