@@ -14,7 +14,6 @@ ENV['DATABASE_URL'] = 'mysql2://dax:dax@localhost/quotes_test'
 Dir.glob('./spec/support/*.rb')  { |f| require f }
 
 class FeatureTest < Minitest::Spec
-  include Quotes
 
   before do
     clean_database
@@ -22,7 +21,7 @@ class FeatureTest < Minitest::Spec
   end
 
   def call_use_case(domain, use_case, input_hash = nil)
-    use_case = eval("#{domain.to_s}::UseCases::#{use_case}.new(#{input_hash})")
+    use_case = eval("#{domain}::UseCases::#{use_case}.new(#{input_hash})")
 
     use_case.call
   end
