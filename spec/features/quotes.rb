@@ -15,7 +15,7 @@ class FeaturesQuotes < FeatureTest
     delete_quote(3)
 
     assert_equal 3,                       get_quotes.quotes.count
-    assert_equal [1, 4, 5],               get_quotes.quotes.map(&:id)
+    assert_equal [1, 4, 5],               get_quotes.quotes.map(&:uid)
 
     assert_empty                          search_for('[test]').quotes
 
@@ -27,14 +27,14 @@ class FeaturesQuotes < FeatureTest
   private
 
   def search_for(query)
-    call_use_case(:Quotes, :Search,
+    call_use_case(Quotes, :Search,
       :query => query
     )
   end
 
   def create_quotes(number_of_quotes)
     number_of_quotes.times do |i|
-      call_use_case(:Quotes, :CreateQuote,
+      call_use_case(Quotes, :CreateQuote,
         :quote => {
           :author   => "Author for Quote ##{i+1}",
           :title    => "Title for Quote ##{i+1}",
@@ -44,12 +44,12 @@ class FeaturesQuotes < FeatureTest
     end
   end
 
-  def update_quote(id, tags)
-    quote = get_quote(id).quote
+  def update_quote(uid, tags)
+    quote = get_quote(uid).quote
 
-    call_use_case(:Quotes, :UpdateQuote,
+    call_use_case(Quotes, :UpdateQuote,
       :quote => {
-        :id       => id,
+        :uid       => uid,
         :author   => quote.author,
         :title    => quote.title,
         :content  => quote.content,
@@ -59,19 +59,19 @@ class FeaturesQuotes < FeatureTest
   end
 
 
-  def delete_quote(id)
-    call_use_case(:Quotes, :DeleteQuote,
-      :id => id
+  def delete_quote(uid)
+    call_use_case(Quotes, :DeleteQuote,
+      :uid => uid
     )
   end
 
   def get_quotes
-    call_use_case(:Quotes, :GetQuotes)
+    call_use_case(Quotes, :GetQuotes)
   end
 
-  def get_quote(id)
-    call_use_case(:Quotes, :GetQuote,
-      :id => id
+  def get_quote(uid)
+    call_use_case(Quotes, :GetQuote,
+      :uid => uid
     )
   end
 
