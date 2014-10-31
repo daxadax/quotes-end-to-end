@@ -4,8 +4,8 @@ Bundler.setup
 require 'minitest/autorun'
 require 'minitest/spec'
 
-require 'quotes'
-require 'users'
+require 'manager'
+require 'persistence'
 
 ENV['test'] = '1'
 ENV['DATABASE_URL'] = 'mysql2://dax:dax@localhost/quotes_test'
@@ -20,10 +20,8 @@ class FeatureTest < Minitest::Spec
     run_migrations
   end
 
-  def call_use_case(domain, use_case, input_hash = nil)
-    use_case = eval("#{domain}::UseCases::#{use_case}.new(#{input_hash})")
-
-    use_case.call
+  def call_use_case(use_case, args = nil)
+    use_case = eval("Manager.#{use_case}(#{args})")
   end
 
   def assert_kind_of(expected, actual)

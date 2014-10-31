@@ -7,34 +7,34 @@ class FeaturesQuotes < FeatureTest
 
     create_quotes(5)
 
-    assert_equal 5,                       get_quotes.quotes.count
-    assert_equal "Title for Quote #1",    get_quote(1).quote.title
+    assert_equal 5, get_quotes.quotes.count
+    assert_equal "Title for Quote #1", get_quote(1).quote.title
     assert_equal "Content for Quote #1",  get_quote(1).quote.content
 
     delete_quote(2)
     delete_quote(3)
 
-    assert_equal 3,                       get_quotes.quotes.count
-    assert_equal [1, 4, 5],               get_quotes.quotes.map(&:uid)
+    assert_equal 3, get_quotes.quotes.count
+    assert_equal [1, 4, 5], get_quotes.quotes.map(&:uid)
 
-    assert_empty                          search_for('[test]').quotes
+    assert_empty search_for('[test]').quotes
 
     update_quote(5, ['test', 'tags'])
 
-    assert_equal 1,                       search_for('[test]').quotes.count
+    assert_equal 1, search_for('[test]').quotes.count
   end
 
   private
 
   def search_for(query)
-    call_use_case(Quotes, :Search,
+    call_use_case(:search,
       :query => query
     )
   end
 
   def create_quotes(number_of_quotes)
     number_of_quotes.times do |i|
-      call_use_case(Quotes, :CreateQuote,
+      call_use_case(:create_quote,
         :quote => {
           :author   => "Author for Quote ##{i+1}",
           :title    => "Title for Quote ##{i+1}",
@@ -47,7 +47,7 @@ class FeaturesQuotes < FeatureTest
   def update_quote(uid, tags)
     quote = get_quote(uid).quote
 
-    call_use_case(Quotes, :UpdateQuote,
+    call_use_case(:update_quote,
       :quote => {
         :uid       => uid,
         :author   => quote.author,
@@ -60,17 +60,17 @@ class FeaturesQuotes < FeatureTest
 
 
   def delete_quote(uid)
-    call_use_case(Quotes, :DeleteQuote,
+    call_use_case(:delete_quote,
       :uid => uid
     )
   end
 
   def get_quotes
-    call_use_case(Quotes, :GetQuotes)
+    call_use_case(:get_quotes)
   end
 
   def get_quote(uid)
-    call_use_case(Quotes, :GetQuote,
+    call_use_case(:get_quote,
       :uid => uid
     )
   end

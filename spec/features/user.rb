@@ -45,31 +45,49 @@ class FeaturesUser < FeatureTest
     assert_equal false, user.terms_accepted
   end
 
-  def create_test_user(options = {})
-    call_use_case(Users, :CreateUser,
-      :user => {
-        :nickname   => options[:nickname]   ||'nickname',
-        :email      => options[:email]      ||'email',
-        :auth_key   => options[:auth_key]   ||'auth_key'
-      }
+  def create_test_user(args = {})
+    call_use_case(:create_user,
+      :nickname => args[:nickname] || 'nickname',
+      :email => args[:email] || 'email',
+      :auth_key => args[:auth_key] || raise('You must call with an :auth_key')
     )
   end
 
-  def authenticate_test_user(options = {})
-    call_use_case(Users, :AuthenticateUser,
-      :nickname => options[:nickname] || 'test_user',
-      :auth_key => options[:auth_key] || 'auth_key'
+  def update_user(args)
+    call_use_case(:update_user,
+      :uid => args[:uid] || raise('You must call with a :uid'),
+      :updates => args[:updates] || updates_for_user,
+      :auth_key => args[:auth_key] || raise('You must call with an :auth_key')
+    )
+  end
+
+  def updates_for_user
+    {
+      :nickname => 'updated nickname',
+      :email => 'updated email',
+      :auth_key => 'updated auth_key'
+    }
+  end
+
+  def authenticate_user(args = {})
+    call_use_case(:authenticate_user,
+      :nickname => args[:nickname] || 'updated nickname',
+      :auth_key => args[:auth_key] || raise('You must call with an :auth_key')
     )
   end
 
   def get_user(uid)
-    call_use_case(Users, :GetUser,
+    call_use_case(:get_user,
       :uid => uid
     )
   end
 
+  def get_users
+    call_use_case(:get_users)
+  end
+
   def create_quote_for_user(user_uid)
-    call_use_case(Quotes, :CreateQuote,
+    call_use_case(:create_quote,
       :added_by   => user_uid,
       :quote      => {
         :author   => "Author",
