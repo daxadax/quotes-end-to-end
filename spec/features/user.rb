@@ -2,38 +2,47 @@ require 'spec_helper'
 
 class FeaturesUser < FeatureTest
 
-  it "registers new users" do
-    user = create_test_user
+  it "does user stuff" do
+    user_uid = create_test_user(:auth_key => 'auth_key').uid
+    user = get_user(user_uid).user
 
-    assert_equal '1',             user.uid
-    assert_equal 'test_user',     user.nickname
-    assert_nil                    user.email
-    assert_empty                  user.favorites
-    assert_empty                  user.added
-    assert_equal false,           user.terms_accepted
+    assert_equal 1, user.uid
+    assert_equal 'nickname', user.nickname
+    assert_equal 'email', user.email
+    assert_empty user.favorites
+    assert_empty user.added_quotes
+    assert_equal false, user.terms_accepted
 
     create_more_users
-    assert_equal 5,               get_users.users.count
+    assert_equal 5, get_users.users.count
 
-    user = get_user(user.uid)
+    update = update_user( :uid => user_uid, :auth_key => 'wrong_auth_key')
+    assert_equal :auth_failure, update.error
+    assert_nil update.uid
 
-    assert_denied update_user(:uid      => user.uid,
-                              :nickname => 'user_two')
+    update = update_user(:uid => user_uid, :auth_key => 'auth_key')
+    assert_nil update.error
 
-    update_user(:uid      => user.uid,
-                :nickname => 'new_user_one',
-                :email    => 'user@mail.com')
+    user = get_user(user_uid).user
 
-    user = get_user(user.uid)
+    assert_equal 1, user.uid
+    assert_equal 'updated nickname', user.nickname
+    assert_equal 'updated email', user.email
+    assert_empty user.favorites
+    assert_empty user.added_quotes
+    assert_equal false, user.terms_accepted
 
-    assert_equal '1',             user.uid
-    assert_equal 'new_user_one',  user.nickname
-    assert_equal 'user@mail.com', user.email
-    assert_empty                  user.favorites
-    assert_empty                  user.added
-    assert_equal true,            user.terms_accepted
+    assert_equal user_uid, authenticate_user(:auth_key => 'updated auth_key').uid
 
-    assert_equal user.uid, authenticate_test_user
+    create_quote_for_user user_uid
+    user = get_user(user_uid).user
+
+    assert_equal 1, user.uid
+    assert_equal 'updated nickname', user.nickname
+    assert_equal 'updated email', user.email
+    assert_empty user.favorites
+    assert_empty user.added_quotes
+    assert_equal false, user.terms_accepted
   end
 
   def create_test_user(options = {})
@@ -63,18 +72,18 @@ class FeaturesUser < FeatureTest
     call_use_case(Quotes, :CreateQuote,
       :added_by   => user_uid,
       :quote      => {
-        :author   => "Author for Quote ##{i+1}",
-        :title    => "Title for Quote ##{i+1}",
-        :content  => "Content for Quote ##{i+1}"
+        :author   => "Author",
+        :title    => "Title",
+        :content  => "Content"
       }
     )
   end
 
   def create_more_users
-    create_test_user(:nickname => 'user_two',   :password => 'weak_sauce')
-    create_test_user(:nickname => 'user_three', :password => 'jesus_bros')
-    create_test_user(:nickname => 'user_four',  :password => '420_4_ever')
-    create_test_user(:nickname => 'user_five',  :password => 'lewinsky_m')
+    create_test_user(:nickname => 'user_two',   :auth_key => 'weak_sauce')
+    create_test_user(:nickname => 'user_three', :auth_key => 'jesus_bros')
+    create_test_user(:nickname => 'user_four',  :auth_key => '420_4_ever')
+    create_test_user(:nickname => 'user_five',  :auth_key => 'lewinsky_m')
   end
 
 end
