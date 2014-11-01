@@ -35,10 +35,11 @@ class FeaturesQuotes < FeatureTest
   def create_quotes(number_of_quotes)
     number_of_quotes.times do |i|
       call_use_case(:create_quote,
+        :user_uid => 23,
         :quote => {
-          :author   => "Author for Quote ##{i+1}",
-          :title    => "Title for Quote ##{i+1}",
-          :content  => "Content for Quote ##{i+1}"
+          :author => "Author for Quote ##{i+1}",
+          :title => "Title for Quote ##{i+1}",
+          :content => "Content for Quote ##{i+1}"
         }
       )
     end
@@ -49,11 +50,12 @@ class FeaturesQuotes < FeatureTest
 
     call_use_case(:update_quote,
       :quote => {
-        :uid       => uid,
-        :author   => quote.author,
-        :title    => quote.title,
-        :content  => quote.content,
-        :tags     => tags
+        :uid => uid,
+        :added_by => quote.added_by,
+        :author => quote.author,
+        :title => quote.title,
+        :content => quote.content,
+        :tags => tags
       }
     )
   end
