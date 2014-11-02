@@ -16,6 +16,10 @@ class FeaturesUser < FeatureTest
     create_more_users
     assert_equal 5, get_users.users.count
 
+    delete_user_with_uid(4)
+    assert_equal 4, get_users.users.count
+    refute_includes get_users.users.map(&:uid), 4
+
     update = update_user( :uid => user_uid, :auth_key => 'wrong_auth_key')
     assert_equal :auth_failure, update.error
     assert_nil update.uid
@@ -34,14 +38,14 @@ class FeaturesUser < FeatureTest
 
     assert_equal user_uid, authenticate_user(:auth_key => 'updated auth_key').uid
 
-    create_quote_for_user user_uid
+    created_quote = create_quote_for_user user_uid
     user = get_user(user_uid).user
 
     assert_equal 1, user.uid
     assert_equal 'updated nickname', user.nickname
     assert_equal 'updated email', user.email
     assert_empty user.favorites
-    assert_empty user.added_quotes
+    assert_includes user.added_quotes, created_quote.uid
     assert_equal false, user.terms_accepted
   end
 
@@ -86,9 +90,15 @@ class FeaturesUser < FeatureTest
     call_use_case(:get_users)
   end
 
+  def delete_user_with_uid(uid)
+    call_use_case(:delete_user,
+      :uid => uid
+    )
+  end
+
   def create_quote_for_user(user_uid)
     call_use_case(:create_quote,
-      :added_by   => user_uid,
+      :user_uid   => user_uid,
       :quote      => {
         :author   => "Author",
         :title    => "Title",
