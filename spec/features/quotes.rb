@@ -60,7 +60,6 @@ class FeaturesQuotes < FeatureTest
     )
   end
 
-
   def delete_quote(uid)
     call_use_case(:delete_quote,
       :uid => uid
