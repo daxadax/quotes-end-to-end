@@ -2,9 +2,8 @@ require 'spec_helper'
 
 class FeaturesUser < FeatureTest
 
-  it "does user stuff" do
+  it "successfully calls all use_cases from the users domain" do
     user_uid = create_test_user(:auth_key => 'auth_key').uid
-    user = get_user(user_uid).user
 
     assert_equal 1, user.uid
     assert_equal 'nickname', user.nickname
@@ -27,8 +26,6 @@ class FeaturesUser < FeatureTest
     update = update_user(:uid => user_uid, :auth_key => 'auth_key')
     assert_nil update.error
 
-    user = get_user(user_uid).user
-
     assert_equal 1, user.uid
     assert_equal 'updated nickname', user.nickname
     assert_equal 'updated email', user.email
@@ -39,7 +36,6 @@ class FeaturesUser < FeatureTest
     assert_equal user_uid, authenticate_user(:auth_key => 'updated auth_key').uid
 
     created_quote = create_quote_for_user user_uid
-    user = get_user(user_uid).user
 
     assert_equal 1, user.uid
     assert_equal 'updated nickname', user.nickname
@@ -47,6 +43,22 @@ class FeaturesUser < FeatureTest
     assert_empty user.favorites
     assert_includes user.added_quotes, created_quote.uid
     assert_equal false, user.terms_accepted
+
+    toggle_favorite_status_of_quote_for_user(2, created_quote.uid)
+
+    user_with_favorite_quote = get_user(2).user
+    assert_includes user_with_favorite_quote.favorites, created_quote.uid
+    refute_includes user.favorites, created_quote.uid
+
+    toggle_favorite_status_of_quote_for_user(2, created_quote.uid)
+
+    user_with_favorite_quote = get_user(2).user
+    refute_includes user_with_favorite_quote.favorites, created_quote.uid
+    refute_includes user.favorites, created_quote.uid
+  end
+
+  def user
+    get_user(1).user
   end
 
   def create_test_user(args = {})
@@ -96,13 +108,20 @@ class FeaturesUser < FeatureTest
     )
   end
 
+  def toggle_favorite_status_of_quote_for_user(uid, quote_uid)
+    call_use_case(:toggle_favorite,
+      :uid => uid,
+      :quote_uid => quote_uid
+    )
+  end
+
   def create_quote_for_user(user_uid)
     call_use_case(:create_quote,
-      :user_uid   => user_uid,
-      :quote      => {
-        :author   => "Author",
-        :title    => "Title",
-        :content  => "Content"
+      :user_uid => user_uid,
+      :quote => {
+        :author => "Author",
+        :title => "Title",
+        :content => "Content"
       }
     )
   end
