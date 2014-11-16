@@ -5,11 +5,16 @@ class FeaturesQuotes < FeatureTest
   it "successfully calls all use_cases from the quotes domain" do
     assert_equal 0, get_quotes.quotes.count
 
-    create_quotes(5)
+    publication_uid = create_publication.uid
 
+    create_quotes_for_publication publication_uid
     assert_equal 5, get_quotes.quotes.count
-    assert_equal "Title for Quote #1", get_quote(1).quote.title
-    assert_equal "Content for Quote #1",  get_quote(1).quote.content
+
+    quote = get_quote(1).quote
+
+    assert_equal 23, quote.added_by
+    assert_equal "Content for Quote #1",  quote.content
+    assert_equal publication_uid, quote.publication_uid
 
     delete_quote(2)
     delete_quote(3)
@@ -21,7 +26,17 @@ class FeaturesQuotes < FeatureTest
 
     update_quote(5, ['test', 'tags'])
 
-    assert_equal 1, search_for('[test]').quotes.count
+    search_result = search_for('[test]').quotes
+
+    assert_equal 1, search_result.size
+    assert_includes search_result.first.tags, 'test'
+
+    search_result = search_for('author')
+
+    assert_equal 'author', search_result.query
+    assert_empty search_result.tags
+    assert_equal 1, search_result.publications.size
+    assert_equal 3, search_result.quotes.size
   end
 
   private
@@ -32,14 +47,23 @@ class FeaturesQuotes < FeatureTest
     )
   end
 
-  def create_quotes(number_of_quotes)
-    number_of_quotes.times do |i|
+  def create_publication
+    call_use_case :create_publication,
+      :publication => {
+        :author => 'author',
+        :title => 'title',
+        :publisher => 'publisher',
+        :year => 'year'
+      }
+  end
+
+  def create_quotes_for_publication(publication_uid)
+    5.times do |i|
       call_use_case(:create_quote,
         :user_uid => 23,
         :quote => {
-          :author => "Author for Quote ##{i+1}",
-          :title => "Title for Quote ##{i+1}",
-          :content => "Content for Quote ##{i+1}"
+          :content => "Content for Quote ##{i+1}",
+          :publication_uid => publication_uid
         }
       )
     end
@@ -52,9 +76,8 @@ class FeaturesQuotes < FeatureTest
       :quote => {
         :uid => uid,
         :added_by => quote.added_by,
-        :author => quote.author,
-        :title => quote.title,
         :content => quote.content,
+        :publication_uid => quote.publication_uid,
         :tags => tags
       }
     )

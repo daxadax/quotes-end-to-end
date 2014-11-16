@@ -119,9 +119,8 @@ class FeaturesUser < FeatureTest
     call_use_case(:create_quote,
       :user_uid => user_uid,
       :quote => {
-        :author => "Author",
-        :title => "Title",
-        :content => "Content"
+        :content => "Content for Quote",
+        :publication_uid => 99
       }
     )
   end
