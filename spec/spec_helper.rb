@@ -21,7 +21,7 @@ class FeatureTest < Minitest::Spec
   end
 
   def call_use_case(use_case, args = nil)
-    use_case = eval("Manager.#{use_case}(#{args})")
+    use_case = eval("Manager::Interface.#{use_case}(#{args})")
   end
 
   def assert_kind_of(expected, actual)
