@@ -15,6 +15,10 @@ class FeaturesQuotes < FeatureTest
     assert_equal 23, quote.added_by
     assert_equal "Content for Quote #1",  quote.content
     assert_equal publication_uid, quote.publication_uid
+    assert_equal 'author', quote.author
+    assert_equal 'title', quote.title
+    assert_equal 'publisher', quote.publisher
+    assert_equal 1999, quote.year
 
     delete_quote(2)
     delete_quote(3)
@@ -53,7 +57,7 @@ class FeaturesQuotes < FeatureTest
         :author => 'author',
         :title => 'title',
         :publisher => 'publisher',
-        :year => 'year'
+        :year => 1999
       }
   end
 

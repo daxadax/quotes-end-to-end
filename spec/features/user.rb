@@ -120,9 +120,19 @@ class FeaturesUser < FeatureTest
       :user_uid => user_uid,
       :quote => {
         :content => "Content for Quote",
-        :publication_uid => 99
+        :publication_uid => publication.uid
       }
     )
+  end
+
+  def publication
+    call_use_case :create_publication,
+      :publication => {
+        :author => 'author',
+        :title => 'title',
+        :publisher => 'publisher',
+        :year => 1999
+      }
   end
 
   def create_more_users
