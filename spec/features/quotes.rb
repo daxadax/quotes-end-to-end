@@ -39,7 +39,6 @@ class FeaturesQuotes < FeatureTest
 
     assert_equal 'author', search_result.query
     assert_empty search_result.tags
-    assert_equal 1, search_result.publications.size
     assert_equal 3, search_result.quotes.size
   end
 
