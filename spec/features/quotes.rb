@@ -24,7 +24,7 @@ class FeaturesQuotes < FeatureTest
     delete_quote(3)
 
     assert_equal 3, get_quotes.quotes.count
-    assert_equal [1, 4, 5], get_quotes.quotes.map(&:uid)
+    assert_equal [5, 4, 1], get_quotes.quotes.map(&:uid)
 
     assert_empty search_for('[test]').quotes
 
