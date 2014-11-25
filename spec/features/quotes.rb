@@ -75,7 +75,8 @@ class FeaturesQuotes < FeatureTest
   def update_quote(uid, tags)
     quote = get_quote(uid).quote
 
-    call_use_case(:update_quote,
+    call_use_case :update_quote,
+      :user_uid => quote.added_by,
       :quote => {
         :uid => uid,
         :added_by => quote.added_by,
@@ -83,7 +84,6 @@ class FeaturesQuotes < FeatureTest
         :publication_uid => quote.publication_uid,
         :tags => tags
       }
-    )
   end
 
   def delete_quote(uid)
