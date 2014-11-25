@@ -33,7 +33,9 @@ class FeaturesUser < FeatureTest
     assert_empty user.added_quotes
     assert_equal false, user.terms_accepted
 
-    assert_equal user_uid, authenticate_user(:auth_key => 'updated auth_key').uid
+    authenticate =  authenticate_user(:auth_key => 'updated auth_key')
+    assert_nil authenticate.error
+    assert_equal user_uid, authenticate.uid
 
     created_quote = create_quote_for_user user_uid
 
