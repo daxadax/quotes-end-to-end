@@ -12,6 +12,11 @@ class FeaturesUser < FeatureTest
     assert_empty user.added_quotes
     assert_equal false, user.terms_accepted
 
+    duplicate_registration = create_test_user(:auth_key => 'bootybuttshake')
+
+    assert_equal :duplicate_user, duplicate_registration.error
+    assert_nil duplicate_registration.uid
+
     create_more_users
     assert_equal 5, get_users.users.count
 
@@ -32,10 +37,30 @@ class FeaturesUser < FeatureTest
     assert_empty user.favorites
     assert_empty user.added_quotes
     assert_equal false, user.terms_accepted
+    assert_nil user.last_login_time
+    assert_nil user.last_login_address
+    assert_equal 0, user.login_count
+
+    authenticate =  authenticate_user(:auth_key => 'incorrect auth_key')
+    assert_equal :auth_failure, authenticate.error
+    assert_nil authenticate.uid
+
+    assert_nil user.last_login_time
+    assert_nil user.last_login_address
+    assert_equal 0, user.login_count
+
+    authenticate =  authenticate_user :nickname => 'unknown user',
+                                                         :auth_key => 'some key'
+    assert_equal :user_not_found, authenticate.error
+    assert_nil authenticate.uid
 
     authenticate =  authenticate_user(:auth_key => 'updated auth_key')
     assert_nil authenticate.error
     assert_equal user_uid, authenticate.uid
+
+    refute_nil user.last_login_time
+    assert_equal  '23.0.2.5', user.last_login_address
+    assert_equal 1, user.login_count
 
     created_quote = create_quote_for_user user_uid
 
@@ -45,6 +70,9 @@ class FeaturesUser < FeatureTest
     assert_empty user.favorites
     assert_includes user.added_quotes, created_quote.uid
     assert_equal false, user.terms_accepted
+
+    delete_quote_and_ensure_that_user_added_quotes_are_empty
+    assert_add_and_remove_publications
 
     toggle_favorite_status_of_quote_for_user(2, created_quote.uid)
 
@@ -74,8 +102,8 @@ class FeaturesUser < FeatureTest
   def update_user(args)
     call_use_case(:update_user,
       :uid => args[:uid] || raise('You must call with a :uid'),
-      :updates => args[:updates] || updates_for_user,
-      :auth_key => args[:auth_key] || raise('You must call with an :auth_key')
+      :auth_key => args[:auth_key] || raise('You must call with an :auth_key'),
+      :updates => args[:updates] || updates_for_user
     )
   end
 
@@ -88,10 +116,12 @@ class FeaturesUser < FeatureTest
   end
 
   def authenticate_user(args = {})
-    call_use_case(:authenticate_user,
+    call_use_case :authenticate_user,
       :nickname => args[:nickname] || 'updated nickname',
-      :auth_key => args[:auth_key] || raise('You must call with an :auth_key')
-    )
+      :auth_key => args[:auth_key] || raise('You must call with an :auth_key'),
+      :login_data => {
+        :ip_address => args[:ip] || '23.0.2.5'
+      }
   end
 
   def get_user(uid)
