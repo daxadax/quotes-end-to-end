@@ -3,12 +3,12 @@ require 'spec_helper'
 class FeaturesQuotes < FeatureTest
 
   it "successfully calls all use_cases from the quotes domain" do
-    assert_equal 0, get_quotes.quotes.count
+    assert_equal 0, all_quotes.count
 
     publication_uid = create_publication.uid
 
     create_quotes_for_publication publication_uid
-    assert_equal 5, get_quotes.quotes.count
+    assert_equal 5, all_quotes.count
 
     quote = get_quote(1).quote
 
@@ -23,8 +23,14 @@ class FeaturesQuotes < FeatureTest
     delete_quote(2)
     delete_quote(3)
 
-    assert_equal 3, get_quotes.quotes.count
-    assert_equal [5, 4, 1], get_quotes.quotes.map(&:uid)
+    assert_equal 3, all_quotes.count
+    assert_equal [5, 4, 1], all_quotes.map(&:uid)
+
+    wrong_user_uid = 22
+    result = delete_quote(5, wrong_user_uid)
+
+    assert_equal :invalid_user, result.error
+    assert_equal 3, all_quotes.count
 
     assert_empty search_for('[test]').quotes
 
@@ -43,6 +49,10 @@ class FeaturesQuotes < FeatureTest
   end
 
   private
+
+  def all_quotes
+    get_quotes.quotes
+  end
 
   def search_for(query)
     call_use_case(:search,
@@ -72,11 +82,11 @@ class FeaturesQuotes < FeatureTest
     end
   end
 
-  def update_quote(uid, tags)
+  def update_quote(uid, tags, user_uid = 23)
     quote = get_quote(uid).quote
 
     call_use_case :update_quote,
-      :user_uid => quote.added_by,
+      :user_uid => user_uid,
       :quote => {
         :uid => uid,
         :added_by => quote.added_by,
@@ -86,10 +96,10 @@ class FeaturesQuotes < FeatureTest
       }
   end
 
-  def delete_quote(uid)
-    call_use_case(:delete_quote,
+  def delete_quote(uid, user_uid = 23)
+    call_use_case :delete_quote,
+      :user_uid => user_uid,
       :uid => uid
-    )
   end
 
   def get_quotes
