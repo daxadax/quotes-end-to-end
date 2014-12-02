@@ -62,6 +62,7 @@ class FeaturesQuotes < FeatureTest
 
   def create_publication
     call_use_case :create_publication,
+      :user_uid => 23,
       :publication => {
         :author => 'author',
         :title => 'title',

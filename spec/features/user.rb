@@ -5,6 +5,42 @@ class FeaturesUser < FeatureTest
   it "successfully calls all use_cases from the users domain" do
     user_uid = create_test_user(:auth_key => 'auth_key').uid
 
+    run_CRUD_tests(user_uid)
+    run_authentication_tests(user_uid)
+
+    publication = create_publication_for_user user_uid
+    created_quote = create_quote_for_user user_uid, publication.uid
+
+    assert_equal 1, user.uid
+    assert_equal 'updated nickname', user.nickname
+    assert_equal 'updated email', user.email
+    assert_empty user.favorites
+    assert_includes user.added_quotes, created_quote.uid
+    assert_includes user.added_publications, publication.uid
+    assert_equal false, user.terms_accepted
+
+    delete_quote created_quote.uid
+    assert_empty user.added_quotes
+
+    delete_publication publication.uid
+    assert_empty user.added_publications
+
+    toggle_favorite_status_of_quote_for_user(2, created_quote.uid)
+
+    user_with_favorite_quote = get_user(2).user
+    assert_includes user_with_favorite_quote.favorites, created_quote.uid
+    refute_includes user.favorites, created_quote.uid
+
+    toggle_favorite_status_of_quote_for_user(2, created_quote.uid)
+
+    user_with_favorite_quote = get_user(2).user
+    refute_includes user_with_favorite_quote.favorites, created_quote.uid
+    refute_includes user.favorites, created_quote.uid
+  end
+
+  private
+
+  def run_CRUD_tests(user_uid)
     assert_equal 1, user.uid
     assert_equal 'nickname', user.nickname
     assert_equal 'email', user.email
@@ -40,7 +76,9 @@ class FeaturesUser < FeatureTest
     assert_nil user.last_login_time
     assert_nil user.last_login_address
     assert_equal 0, user.login_count
+  end
 
+  def run_authentication_tests(user_uid)
     authenticate =  authenticate_user(:auth_key => 'incorrect auth_key')
     assert_equal :auth_failure, authenticate.error
     assert_nil authenticate.uid
@@ -61,30 +99,6 @@ class FeaturesUser < FeatureTest
     refute_nil user.last_login_time
     assert_equal  '23.0.2.5', user.last_login_address
     assert_equal 1, user.login_count
-
-    created_quote = create_quote_for_user user_uid
-
-    assert_equal 1, user.uid
-    assert_equal 'updated nickname', user.nickname
-    assert_equal 'updated email', user.email
-    assert_empty user.favorites
-    assert_includes user.added_quotes, created_quote.uid
-    assert_equal false, user.terms_accepted
-
-    delete_quote_and_ensure_that_user_added_quotes_are_empty
-    assert_add_and_remove_publications
-
-    toggle_favorite_status_of_quote_for_user(2, created_quote.uid)
-
-    user_with_favorite_quote = get_user(2).user
-    assert_includes user_with_favorite_quote.favorites, created_quote.uid
-    refute_includes user.favorites, created_quote.uid
-
-    toggle_favorite_status_of_quote_for_user(2, created_quote.uid)
-
-    user_with_favorite_quote = get_user(2).user
-    refute_includes user_with_favorite_quote.favorites, created_quote.uid
-    refute_includes user.favorites, created_quote.uid
   end
 
   def user
@@ -147,18 +161,31 @@ class FeaturesUser < FeatureTest
     )
   end
 
-  def create_quote_for_user(user_uid)
+  def create_quote_for_user(user_uid, publication_uid)
     call_use_case(:create_quote,
       :user_uid => user_uid,
       :quote => {
         :content => "Content for Quote",
-        :publication_uid => publication.uid
+        :publication_uid => publication_uid
       }
     )
   end
 
-  def publication
+  def delete_quote(uid)
+    call_use_case :delete_quote,
+      :user_uid => user.uid,
+      :uid => uid
+  end
+
+  def delete_publication(uid)
+    call_use_case :delete_publication,
+      :user_uid => user.uid,
+      :uid => uid
+  end
+
+  def create_publication_for_user(user_uid)
     call_use_case :create_publication,
+      :user_uid => user_uid,
       :publication => {
         :author => 'author',
         :title => 'title',
