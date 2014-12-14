@@ -20,6 +20,15 @@ class FeaturesQuotes < FeatureTest
     assert_equal 'publisher', quote.publisher
     assert_equal 1999, quote.year
 
+    update_publication(23, publication_uid, :author => 'updated author')
+
+    quote = get_quote(1).quote
+
+    assert_equal 23, quote.added_by
+    assert_equal "Content for Quote #1",  quote.content
+    assert_equal publication_uid, quote.publication_uid
+    assert_equal 'updated author', quote.author
+
     delete_quote(2)
     delete_quote(3)
 
@@ -97,6 +106,13 @@ class FeaturesQuotes < FeatureTest
       }
   end
 
+  def update_publication(user_uid , uid, updates = {})
+    call_use_case :update_publication,
+      :user_uid => user_uid,
+      :uid => uid,
+      :updates => updates
+  end
+
   def delete_quote(uid, user_uid = 23)
     call_use_case :delete_quote,
       :user_uid => user_uid,
@@ -104,13 +120,17 @@ class FeaturesQuotes < FeatureTest
   end
 
   def get_quotes
-    call_use_case(:get_quotes)
+    call_use_case :get_quotes
   end
 
   def get_quote(uid)
-    call_use_case(:get_quote,
+    call_use_case :get_quote,
       :uid => uid
-    )
+  end
+
+  def get_publication(uid)
+    call_use_case :get_publication,
+      :uid => uid
   end
 
 end
