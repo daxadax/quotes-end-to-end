@@ -11,13 +11,9 @@ class FeaturesUser < FeatureTest
     publication = create_publication_for_user user_uid
     created_quote = create_quote_for_user user_uid, publication.uid
 
-    assert_equal 1, user.uid
-    assert_equal 'updated nickname', user.nickname
-    assert_equal 'updated email', user.email
     assert_empty user.favorites
     assert_includes user.added_quotes, created_quote.uid
     assert_includes user.added_publications, publication.uid
-    assert_equal false, user.terms_accepted
 
     delete_quote created_quote.uid
     assert_empty user.added_quotes
