@@ -3,6 +3,15 @@ require 'spec_helper'
 class FeaturesQuotes < FeatureTest
 
   it "successfully calls all use_cases from the quotes domain" do
+    test_CRUD_functions
+    test_search_function
+
+    #test_kindle_imports_with_autotag
+  end
+
+  private
+
+  def test_CRUD_functions
     assert_equal 0, all_quotes.count
 
     publication_uid = create_publication.uid
@@ -40,7 +49,9 @@ class FeaturesQuotes < FeatureTest
 
     assert_equal :invalid_user, result.error
     assert_equal 3, all_quotes.count
+  end
 
+  def test_search_function
     assert_empty search_for('[test]').quotes
 
     update_quote(5, ['test', 'tags'])
@@ -56,8 +67,6 @@ class FeaturesQuotes < FeatureTest
     assert_empty search_result.tags
     assert_equal 3, search_result.quotes.size
   end
-
-  private
 
   def all_quotes
     get_quotes.quotes
