@@ -27,6 +27,8 @@ class FeaturesUser < FeatureTest
 
     toggle_favorite_status_of_quote_for_user(2, created_quote.uid)
 
+    # this should fail.  how can a user favorite a quote which does not exist?
+
     user_with_favorite_quote = get_user(2).user
     assert_includes user_with_favorite_quote.favorites, created_quote.uid
     refute_includes user.favorites, created_quote.uid
@@ -36,6 +38,27 @@ class FeaturesUser < FeatureTest
     user_with_favorite_quote = get_user(2).user
     refute_includes user_with_favorite_quote.favorites, created_quote.uid
     refute_includes user.favorites, created_quote.uid
+
+    ## ## Can quotes be deleted?  How to handle this?  ## ##
+    # publication = create_publication_for_user user_uid
+    # quote_one = create_quote_for_user user_uid, publication.uid
+    # quote_two = create_quote_for_user user_uid, publication.uid
+    #
+    # toggle_favorite_status_of_quote_for_user(2, quote_one.uid)
+    # toggle_favorite_status_of_quote_for_user(3, quote_two.uid)
+    #
+    # user_two = get_user(2).user
+    # user_three = get_user(3).user
+    #
+    # assert_includes user_two.favorites, quote_one.uid
+    # assert_includes user_three.favorites, quote_two.uid
+    #
+    # delete_quote quote_one.uid
+    # assert_empty user_two.favorites
+    # assert_includes user_three.favorites, quote_two.uid
+    #
+    # delete_publication publication.uid
+    # assert_empty user_three.favorites
   end
 
   private
