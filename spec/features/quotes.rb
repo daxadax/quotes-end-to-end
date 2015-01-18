@@ -7,6 +7,41 @@ class FeaturesQuotes < FeatureTest
     test_search_function
 
     #test_kindle_imports_with_autotag
+    publication = create_publication(
+      :author => "Ernest Becker",
+      :title => "The Denial of Death"
+    )
+
+    quote = create_quote(publication.uid, "Example quote which has been edited")
+    update_quote(quote.uid, ['example', 'quote'])
+
+    file = File.read('./spec/support/kindle_clippings.txt')
+    result_of_upload = upload_from_kindle(file)
+    assert_nil result_of_upload.error
+
+    #ensure_existing_publication_is_used
+    expected_publication = get_publication(publication.uid).publication
+    last_quote_imported = get_quotes.quotes.first
+
+    assert_equal last_quote_imported.publication_uid, expected_publication.uid
+    assert_equal last_quote_imported.author, expected_publication.author
+    assert_equal last_quote_imported.title, expected_publication.title
+    assert_equal last_quote_imported.publisher, expected_publication.publisher
+    assert_equal last_quote_imported.year, expected_publication.year
+
+    #ensure_possible_duplicates
+    refute_empty result_of_upload.possible_duplicates
+    assert_equal 1, result_of_upload.possible_duplicates.size
+
+    #ensure_appropriate_tags
+    quotes_that_should_have_tags = get_quotes.quotes.select do |quote|
+      quote.content =~ /example/i
+    end
+
+    assert_equal 2, quotes_that_should_have_tags.size
+    quotes_that_should_have_tags.each do |quote|
+      assert_equal ['example', 'quote'], quote.tags
+    end
   end
 
   private
@@ -78,26 +113,36 @@ class FeaturesQuotes < FeatureTest
     )
   end
 
-  def create_publication
+  def upload_from_kindle(file)
+    call_use_case :import_from_kindle,
+      :user_uid => 23,
+      :file => file
+  end
+
+  def create_publication(options = {})
     call_use_case :create_publication,
       :user_uid => 23,
       :publication => {
-        :author => 'author',
-        :title => 'title',
+        :author => options[:author] || 'author',
+        :title => options[:title] ||'title',
         :publisher => 'publisher',
         :year => 1999
       }
   end
 
+  def create_quote(publication_uid, content)
+    call_use_case(:create_quote,
+      :user_uid => 23,
+      :quote => {
+        :content => content,
+        :publication_uid => publication_uid
+      }
+    )
+  end
+
   def create_quotes_for_publication(publication_uid)
     5.times do |i|
-      call_use_case(:create_quote,
-        :user_uid => 23,
-        :quote => {
-          :content => "Content for Quote ##{i+1}",
-          :publication_uid => publication_uid
-        }
-      )
+      create_quote(publication_uid, "Content for Quote ##{i+1}")
     end
   end
 
