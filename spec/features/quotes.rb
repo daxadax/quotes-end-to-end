@@ -13,7 +13,7 @@ class FeaturesQuotes < FeatureTest
     )
 
     quote = create_quote(publication.uid, "Example quote which has been edited")
-    update_quote(quote.uid, ['example', 'quote'])
+    update_quote quote.uid, :tags => ['example', 'quote']
 
     file = File.read('./spec/support/kindle_clippings.txt')
     result_of_upload = upload_from_kindle(file)
@@ -89,7 +89,7 @@ class FeaturesQuotes < FeatureTest
   def test_search_function
     assert_empty search_for('[test]').quotes
 
-    update_quote(5, ['test', 'tags'])
+    update_quote 5, :tags => ['test', 'tags']
 
     search_result = search_for('[test]').quotes
 
@@ -146,18 +146,13 @@ class FeaturesQuotes < FeatureTest
     end
   end
 
-  def update_quote(uid, tags, user_uid = 23)
+  def update_quote(uid, updates, user_uid = 23)
     quote = get_quote(uid).quote
 
     call_use_case :update_quote,
       :user_uid => user_uid,
-      :quote => {
-        :uid => uid,
-        :added_by => quote.added_by,
-        :content => quote.content,
-        :publication_uid => quote.publication_uid,
-        :tags => tags
-      }
+      :uid => uid,
+      :updates => updates
   end
 
   def update_publication(user_uid , uid, updates = {})
