@@ -16,8 +16,8 @@ class FeaturesQuotes < FeatureTest
     update_quote quote.uid, :tags => ['example', 'quote']
 
     file = File.read('./spec/support/kindle_clippings.txt')
-    result_of_upload = upload_from_kindle(file)
-    assert_nil result_of_upload.error
+    result_of_import = import_from_kindle(file)
+    assert_nil result_of_import.error
 
     #ensure_existing_publication_is_used
     expected_publication = get_publication(publication.uid).publication
@@ -30,8 +30,12 @@ class FeaturesQuotes < FeatureTest
     assert_equal last_quote_imported.year, expected_publication.year
 
     #ensure_possible_duplicates
-    refute_empty result_of_upload.possible_duplicates
-    assert_equal 1, result_of_upload.possible_duplicates.size
+    refute_empty result_of_import.possible_duplicates
+    assert_equal 1, result_of_import.possible_duplicates.size
+
+    #ensure_added_quotes_are_returned
+    refute_empty result_of_import.added_quotes
+    assert_equal 2, result_of_import.added_quotes.size
 
     #ensure_appropriate_tags
     quotes_that_should_have_tags = get_quotes.quotes.select do |quote|
@@ -113,7 +117,7 @@ class FeaturesQuotes < FeatureTest
     )
   end
 
-  def upload_from_kindle(file)
+  def import_from_kindle(file)
     call_use_case :import_from_kindle,
       :user_uid => 23,
       :file => file
